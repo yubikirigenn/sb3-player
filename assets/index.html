@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SB3 Web App</title>
+    <style>
+        /* プレイヤーが画面全体に広がるように簡単なスタイルを指定 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* スクロールバーを非表示 */
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- TurboWarpの埋め込み用iframe -->
+    <iframe id="turbowarp-player" allow="fullscreen"></iframe>
+
+    <script>
+        // 埋め込むSB3ファイルのパス
+        const sb3File = './assets/project.sb3';
+
+        // プロジェクトデータを取得してBase64に変換する非同期関数
+        async function loadProject() {
+            try {
+                // ファイルをバイナリデータとして取得
+                const response = await fetch(sb3File);
+                if (!response.ok) {
+                    throw new Error('プロジェクトファイルの読み込みに失敗しました。');
+                }
+                const blob = await response.blob();
+
+                // BlobをBase64文字列に変換
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Base64データから先頭部分 (data:...) を取り除く
+                    const base64 = reader.result.split(',')[1];
+                    
+                    // iframeのsrcにTurboWarpのURLとBase64データを設定
+                    const iframe = document.getElementById('turbowarp-player');
+                    // URLエンコードしたBase64データをURLに含める
+                    iframe.src = `https://turbowarp.org/en/embed?project_data=${encodeURIComponent(base64)}`;
+                };
+                reader.readAsDataURL(blob);
+
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
+        }
+
+        // ページが読み込まれたらプロジェクトをロード
+        window.onload = loadProject;
+    </script>
+</body>
+</html>
